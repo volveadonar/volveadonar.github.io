@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Volvé a Donar</title>
+<meta name="description" content="Sabé cuándo podés volver a donar sangre y encontrá colectas en Rosario.">
+<meta name="theme-color" content="#a3132f">
+<meta name="apple-mobile-web-app-title" content="Volvé a Donar">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: una columna tipo app de teléfono, tarjeta de estado arriba, navegación fija abajo */
+:root {
+  --bg: #faf7f7;
+  --surface: #ffffff;
+  --fg: #22171a;
+  --muted: #6e5f63;
+  --line: #ecdfe1;
+  --accent: #a3132f;       /* glóbulo rojo */
+  --accent-soft: #f8e4e8;
+  --plasma: #c98a12;       /* plasma */
+  --ok: #1d7a4c;
+  --ok-soft: #e1f2e9;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #161012; --surface: #211a1c; --fg: #f4ecee; --muted: #b3a2a6; --line: #3a2e31;
+  --accent: #f0566f; --accent-soft: #3d1a22; --plasma: #e8b54a; --ok: #5fd39a; --ok-soft: #173126;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #161012; --surface: #211a1c; --fg: #f4ecee; --muted: #b3a2a6; --line: #3a2e31;
+  --accent: #f0566f; --accent-soft: #3d1a22; --plasma: #e8b54a; --ok: #5fd39a; --ok-soft: #173126;
+  color-scheme: dark }
+
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+body { margin: 0; -webkit-text-size-adjust: 100%; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+.app { max-width: 480px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-top: calc(20px + env(safe-area-inset-top, 0px)); padding-bottom: 110px; display: grid; gap: 18px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.15 }
+h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em }
+h2 { font-size: 1.2rem; font-weight: 700 }
+h3 { font-size: 1rem; font-weight: 700 }
+p { margin: 0 }
+.muted { color: var(--muted) }
+.small { font-size: .86rem }
+.label { font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700 }
+.num { font-variant-numeric: tabular-nums }
+
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px }
+.brand { display: flex; align-items: center; gap: 10px }
+.drop { width: 30px; height: 30px; flex: none }
+.badge { font-size: .72rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); white-space: nowrap }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; display: grid; gap: 12px; min-width: 0 }
+.status { grid-template-columns: auto 1fr; align-items: center; gap: 18px }
+.status.ready { border-color: var(--ok); background: var(--ok-soft) }
+.ring { width: 104px; height: 104px }
+.ring text { font-family: var(--display); font-weight: 800; fill: var(--fg) }
+.status-text { display: grid; gap: 6px; min-width: 0 }
+.status-text strong { font-family: var(--display); font-size: 1.35rem; line-height: 1.15 }
+.ready .status-text strong { color: var(--ok) }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 12px; display: grid; gap: 2px; align-content: start }
+.stat b { font-family: var(--display); font-size: 1.6rem; line-height: 1.1 }
+.stat span { font-size: .78rem; color: var(--muted); line-height: 1.3 }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+.btn { font: inherit; font-weight: 700; border-radius: 12px; padding: 12px 14px; border: 1.5px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; line-height: 1.2 }
+.btn.ghost { background: transparent; color: var(--accent) }
+.btn.plain { border-color: var(--line); background: var(--surface); color: var(--fg) }
+.btn.danger { border-color: var(--accent); background: transparent; color: var(--accent) }
+.btn:focus-visible, input:focus-visible, select:focus-visible, .nav button:focus-visible { outline: 3px solid var(--plasma); outline-offset: 2px }
+:root:not([data-theme="light"]) .btn:not(.ghost):not(.plain):not(.danger) { color: #fff }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font-family: var(--display); font-weight: 700; font-size: .95rem; padding: 4px 10px; border-radius: 8px; background: var(--accent-soft); color: var(--accent) }
+.chip.off { background: transparent; color: var(--muted); border: 1px dashed var(--line); font-weight: 500 }
+.group-big { font-family: var(--display); font-weight: 800; font-size: 2.4rem; color: var(--accent); line-height: 1 }
+.group-row { display: flex; align-items: center; gap: 16px }
+
+ul.list { list-style: none; margin: 0; padding: 0; display: grid }
+ul.list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line) }
+ul.list li:first-child { border-top: 0 }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: none }
+.li-main { display: flex; gap: 10px; align-items: center; min-width: 0 }
+.li-main div { min-width: 0 }
+.x { font: inherit; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 4px 8px; border-radius: 6px }
+.x:hover { color: var(--accent) }
+
+form { display: grid; gap: 12px }
+.field { display: grid; gap: 4px }
+.field label { font-weight: 700; font-size: .9rem }
+textarea.code { font-family: ui-monospace, Consolas, monospace; font-size: .82rem; word-break: break-all; resize: vertical }
+input, select, textarea { font: inherit; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--fg); width: 100% }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: .9rem }
+.check input { width: 20px; height: 20px; margin-top: 2px; flex: none }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+.seg label { display: flex; gap: 8px; align-items: center; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 10px; font-weight: 400; cursor: pointer }
+.seg input { width: auto }
+
+.event { display: grid; grid-template-columns: 58px 1fr; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line) }
+.event:first-of-type { border-top: 0 }
+.cal { border: 1.5px solid var(--accent); border-radius: 10px; text-align: center; overflow: hidden; background: var(--surface) }
+.cal small { display: block; background: var(--accent); color: #fff; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 0 }
+.cal b { display: block; font-family: var(--display); font-size: 1.4rem; padding: 2px 0 4px }
+.event div { min-width: 0 }
+
+.note { background: var(--accent-soft); border-radius: 12px; padding: 12px 14px; font-size: .88rem }
+.note.plasma { background: transparent; border: 1.5px dashed var(--plasma) }
+.req { display: grid; gap: 0; list-style: none; margin: 0; padding: 0 }
+.req li { display: grid; grid-template-columns: 44px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line) }
+.req li:first-child { border-top: 0 }
+.req .ic { font-family: var(--display); font-weight: 800; color: var(--accent); font-size: 1.05rem; text-align: center; line-height: 1.2 }
+
+.confirm { display: grid; gap: 10px; padding: 12px; border: 1.5px solid var(--accent); border-radius: 12px }
+
+nav.nav { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); z-index: 5 }
+.nav-in { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr) }
+.nav button { font: inherit; font-size: .78rem; font-weight: 700; background: none; border: 0; color: var(--muted); padding: 10px 4px 12px; cursor: pointer; display: grid; justify-items: center; gap: 3px }
+.nav button svg { width: 22px; height: 22px }
+.nav button[aria-current="page"] { color: var(--accent) }
+footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top: 4px }
+@media (prefers-reduced-motion: no-preference) { .ring circle.prog { transition: stroke-dashoffset .8s ease } }
+@media (max-width: 360px) { .stats { grid-template-columns: 1fr 1fr } .actions { grid-template-columns: 1fr } }
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+<nav class="nav" aria-label="Secciones"><div class="nav-in" id="nav"></div></nav>
+
+<script>
+(() => {
+  const KEY = 'volve-a-donar-v1';
+  const CUDAIO = 'https://cudaio.gob.ar/colectas-sangre/';
+  const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const GRUPOS = ['O-','O+','A-','A+','B-','B+','AB-','AB+'];
+  // A quién puede donar glóbulos rojos cada grupo
+  const COMPAT = {
+    'O-': GRUPOS, 'O+': ['O+','A+','B+','AB+'],
+    'A-': ['A-','A+','AB-','AB+'], 'A+': ['A+','AB+'],
+    'B-': ['B-','B+','AB-','AB+'], 'B+': ['B+','AB+'],
+    'AB-': ['AB-','AB+'], 'AB+': ['AB+']
+  };
+
+  const hoy = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+  const iso = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const parse = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+  const addDays = (d, n) => { const r = new Date(d); r.setDate(r.getDate()+n); return r; };
+  const addMonths = (d, n) => { const r = new Date(d); r.setMonth(r.getMonth()+n); return r; };
+  const diasEntre = (a, b) => Math.round((b - a) / 86400000);
+  const largo = d => `${d.getDate()} de ${['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][d.getMonth()]} de ${d.getFullYear()}`;
+  const signo = g => g.replace('-', '−');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  function ejemplo() {
+    const t = hoy();
+    return {
+      ejemplo: true,
+      perfil: { nombre: 'Lucía', grupo: 'O-', sexo: 'F' },
+      donaciones: [
+        { fecha: iso(addDays(t, -75)), lugar: 'Colecta en facultad' },
+        { fecha: iso(addDays(t, -210)), lugar: 'Hospital provincial' },
+        { fecha: iso(addDays(t, -400)), lugar: 'Colecta en un club' }
+      ]
+    };
+  }
+  function cargar() { try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.perfil) return s; } catch (e) {} return ejemplo(); }
+  function guardar() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    // Pide al navegador que no borre estos datos cuando le falte espacio
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
+  }
+
+  // Copia de seguridad: un código de texto que el usuario guarda donde quiera (por ejemplo, en un chat consigo mismo)
+  const PREFIJO = 'VAD1-';
+  function aCodigo() {
+    const datos = { n: state.perfil.nombre, g: state.perfil.grupo, s: state.perfil.sexo, d: state.donaciones.map(d => [d.fecha, d.lugar || '']) };
+    let bin = ''; new TextEncoder().encode(JSON.stringify(datos)).forEach(b => bin += String.fromCharCode(b));
+    return PREFIJO + btoa(bin);
+  }
+  function deCodigo(txt) {
+    const limpio = txt.replace(/\s+/g, '');
+    if (!limpio.startsWith(PREFIJO)) return null;
+    try {
+      const json = new TextDecoder().decode(Uint8Array.from(atob(limpio.slice(PREFIJO.length)), c => c.charCodeAt(0)));
+      const o = JSON.parse(json);
+      if (!o || !Array.isArray(o.d)) return null;
+      const donaciones = o.d.filter(x => Array.isArray(x) && /^\d{4}-\d{2}-\d{2}$/.test(x[0]))
+        .map(x => ({ fecha: x[0], lugar: String(x[1] || '').slice(0, 60) }));
+      return {
+        ejemplo: false,
+        perfil: { nombre: String(o.n || '').slice(0, 40), grupo: GRUPOS.includes(o.g) ? o.g : '', sexo: o.s === 'M' ? 'M' : 'F' },
+        donaciones
+      };
+    } catch (e) { return null; }
+  }
+
+  let state = cargar();
+  let vista = ['inicio','colectas','requisitos','perfil'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'inicio';
+  let confirmarBorrado = false;
+  let agregando = false;
+  let mostrarCodigo = false;
+  let msgCopia = '';
+
+  // Instalación: Android/Chrome ofrece su propio aviso; lo guardamos para mostrarlo desde un botón
+  let promptInstalacion = null;
+  const instalada = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalacion = e; if (vista === 'perfil') render(); });
+  window.addEventListener('appinstalled', () => { promptInstalacion = null; if (vista === 'perfil') render(); });
+
+  const limiteAnual = () => state.perfil.sexo === 'M' ? 4 : 3;
+  const ordenadas = () => state.donaciones.map(d => ({...d, f: parse(d.fecha)})).sort((a, b) => b.f - a.f);
+
+  // Próxima fecha posible: 2 meses desde la última y no más de 3 (mujeres) o 4 (hombres) en 12 meses
+  function proxima() {
+    const ds = ordenadas();
+    if (!ds.length) return { fecha: hoy(), desde: null, motivo: 'primera' };
+    let f = addMonths(ds[0].f, 2), motivo = 'intervalo';
+    const lim = limiteAnual();
+    if (ds.length >= lim) {
+      const tope = addMonths(ds[lim-1].f, 12);
+      if (tope > f) { f = tope; motivo = 'anual'; }
+    }
+    return { fecha: f, desde: ds[0].f, motivo };
+  }
+  const enUltimoAnio = () => ordenadas().filter(d => d.f > addMonths(hoy(), -12)).length;
+
+  function gcalLink(d) {
+    const a = iso(d).replace(/-/g, ''), b = iso(addDays(d, 1)).replace(/-/g, '');
+    const p = new URLSearchParams({ action: 'TEMPLATE', text: 'Ya puedo volver a donar sangre', dates: `${a}/${b}`, details: 'Buscá una colecta e inscribite en ' + CUDAIO });
+    return 'https://calendar.google.com/calendar/render?' + p.toString();
+  }
+
+  const ICON = {
+    inicio: '<path d="M12 3c3 4.2 6 7.6 6 11a6 6 0 0 1-12 0c0-3.4 3-6.8 6-11z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+    colectas: '<rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+    requisitos: '<path d="M5 12.5l4 4 10-10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>',
+    perfil: '<circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c1.2-3.8 4-5.5 7.5-5.5s6.3 1.7 7.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+  };
+  const NOMBRES = { inicio: 'Inicio', colectas: 'Colectas', requisitos: 'Requisitos', perfil: 'Mis datos' };
+
+  function header() {
+    return `<header class="top">
+      <div class="brand">
+        <svg class="drop" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c3.4 4.7 6.8 8.5 6.8 12.3a6.8 6.8 0 0 1-13.6 0c0-3.8 3.4-7.6 6.8-12.3z" fill="var(--accent)"/><path d="M9 15.5a3 3 0 0 0 3 3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" opacity=".8"/></svg>
+        <h1>Volvé a Donar</h1>
+      </div>
+      <span class="badge">Prototipo</span>
+    </header>`;
+  }
+
+  function avisoEjemplo() {
+    if (!state.ejemplo) return '';
+    return `<div class="note plasma small">Estás viendo <b>datos de ejemplo</b>. En <b>Mis datos</b> podés cargar los tuyos; quedan guardados solo en este dispositivo.</div>`;
+  }
+
+  function vInicio() {
+    const p = proxima(), t = hoy();
+    const faltan = Math.max(0, diasEntre(t, p.fecha));
+    const listo = faltan === 0;
+    const total = state.donaciones.length;
+    const anio = enUltimoAnio(), lim = limiteAnual();
+    // Anillo: avance desde la última donación hasta la próxima fecha posible
+    const C = 2 * Math.PI * 44;
+    let frac = 1;
+    if (p.desde && !listo) frac = Math.min(1, diasEntre(p.desde, t) / Math.max(1, diasEntre(p.desde, p.fecha)));
+    const ring = `<svg class="ring" viewBox="0 0 104 104" role="img" aria-label="${listo ? 'Ya podés donar' : 'Faltan ' + faltan + ' días'}">
+      <circle cx="52" cy="52" r="44" fill="none" stroke="var(--line)" stroke-width="9"/>
+      <circle class="prog" cx="52" cy="52" r="44" fill="none" stroke="${listo ? 'var(--ok)' : 'var(--accent)'}" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - frac)).toFixed(1)}" transform="rotate(-90 52 52)"/>
+      ${listo
+        ? `<path d="M36 53l11 11 21-23" fill="none" stroke="var(--ok)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+        : `<text x="52" y="56" text-anchor="middle" font-size="30" class="num">${faltan}</text><text x="52" y="74" text-anchor="middle" font-size="11" style="font-weight:500;fill:var(--muted)">días</text>`}
+    </svg>`;
+    const textoMotivo = p.motivo === 'anual'
+      ? `Ya hiciste ${lim} donaciones en los últimos 12 meses, el máximo recomendado.`
+      : p.motivo === 'primera' ? 'Todavía no registraste donaciones.'
+      : `Pasaron ${diasEntre(p.desde, t)} días desde tu última donación.`;
+
+    const comp = COMPAT[state.perfil.grupo];
+    const grupoCard = comp ? `<section class="card">
+        <span class="label">Tu grupo sanguíneo</span>
+        <div class="group-row"><span class="group-big">${signo(state.perfil.grupo)}</span>
+          <p class="small">${state.perfil.grupo === 'O-' ? 'Donante universal: tus glóbulos rojos sirven para cualquier persona. Por eso tu sangre suele faltar en emergencias.' : 'Tus glóbulos rojos pueden recibirlos estos grupos:'}</p></div>
+        <div class="chips">${GRUPOS.map(g => `<span class="chip ${comp.includes(g) ? '' : 'off'}">${signo(g)}</span>`).join('')}</div>
+      </section>` : '';
+
+    const historial = ordenadas();
+    return `${header()}${avisoEjemplo()}
+      <p class="muted">Hola, ${esc(state.perfil.nombre || 'donante')}.</p>
+      <section class="card status ${listo ? 'ready' : ''}">
+        ${ring}
+        <div class="status-text">
+          <span class="label">${listo ? 'Estado' : 'Próxima donación'}</span>
+          <strong>${listo ? 'Ya podés volver a donar' : largo(p.fecha)}</strong>
+          <p class="small muted">${textoMotivo}</p>
+        </div>
+      </section>
+      <div class="actions">
+        <a class="btn" href="${CUDAIO}" target="_blank" rel="noopener">Buscar una colecta</a>
+        <a class="btn ghost" href="${gcalLink(p.fecha)}" target="_blank" rel="noopener">Agendar recordatorio</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b class="num">${total}</b><span>donaciones registradas</span></div>
+        <div class="stat"><b class="num">${anio}<span style="font-size:1rem;color:var(--muted)">/${lim}</span></b><span>en los últimos 12 meses</span></div>
+        <div class="stat"><b class="num">${total * 3}</b><span>personas que pudiste ayudar</span></div>
+      </div>
+      <p class="small muted">Cada donación se separa en glóbulos rojos, plasma y plaquetas, y puede ayudar hasta a 3 personas.</p>
+      ${grupoCard}
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <h2>Mis donaciones</h2>
+          ${agregando ? '' : '<button class="btn plain" id="btn-agregar" type="button">Registrar donación</button>'}
+        </div>
+        ${agregando ? `<form id="form-don">
+          <div class="field"><label for="don-fecha">Fecha</label><input id="don-fecha" type="date" required max="${iso(t)}" value="${iso(t)}"></div>
+          <div class="field"><label for="don-lugar">Dónde donaste (opcional)</label><input id="don-lugar" type="text" maxlength="60" placeholder="Ej.: colecta en el centro"></div>
+          <div class="actions"><button class="btn" type="submit">Guardar</button><button class="btn plain" type="button" id="btn-cancelar">Cancelar</button></div>
+        </form>` : ''}
+        ${historial.length ? `<ul class="list">${historial.map(d => `<li>
+            <div class="li-main"><span class="dot"></span><div><b class="num">${largo(d.f)}</b><br><span class="small muted">${esc(d.lugar || 'Sin lugar')}</span></div></div>
+            <button class="x" type="button" data-del="${d.fecha}" aria-label="Quitar donación del ${largo(d.f)}">Quitar</button></li>`).join('')}</ul>`
+          : '<p class="muted small">Cuando dones, registralo acá y te avisamos cuándo podés volver.</p>'}
+      </section>`;
+  }
+
+  function vColectas() {
+    const t = hoy();
+    const ej = [
+      { d: addDays(t, 3), lugar: 'Colecta en una facultad', zona: 'Centro', hora: '8 a 12 h' },
+      { d: addDays(t, 9), lugar: 'Colecta en un club de barrio', zona: 'Zona norte', hora: '8 a 13 h' },
+      { d: addDays(t, 16), lugar: 'Puesto fijo en hospital provincial', zona: 'Zona sur', hora: '7 a 11 h' }
+    ];
+    return `${header()}
+      <h2>Colectas cerca tuyo</h2>
+      <div class="note plasma small">Las colectas de abajo son <b>ejemplos ilustrativos</b>. La idea es mostrar acá la agenda real del CUDAIO cuando el proyecto se coordine con ellos. Mientras tanto, la inscripción se hace en su sitio oficial.</div>
+      <section class="card">
+        ${ej.map(e => `<div class="event">
+          <div class="cal" aria-hidden="true"><small>${MESES[e.d.getMonth()]}</small><b class="num">${e.d.getDate()}</b></div>
+          <div><h3>${e.lugar}</h3><p class="small muted">${e.zona} · ${e.hora} · Ejemplo</p></div>
+        </div>`).join('')}
+      </section>
+      <a class="btn" href="${CUDAIO}" target="_blank" rel="noopener">Ver colectas reales e inscribirme</a>
+      <p class="small muted">Para sumar a tu empresa, escuela o institución como sede de una colecta, contactá al CUDAIO desde su sitio.</p>`;
+  }
+
+  function vRequisitos() {
+    const items = [
+      ['16–65', 'Tener entre 16 y 65 años', 'Entre 16 y 17 años, con autorización de madre, padre o tutor.'],
+      ['50 kg', 'Pesar 50 kg o más', ''],
+      ['DNI', 'Llevar documento', 'Te lo piden para registrar la donación.'],
+      ['☕', 'Desayunar liviano', 'No hace falta ir en ayunas. Evitá lácteos y grasas esa mañana.'],
+      ['2 m', 'Esperar 2 meses entre donaciones', 'Hasta 4 veces por año los hombres y 3 las mujeres.'],
+      ['12 m', 'Tatuajes y piercings', 'Esperar 12 meses desde que te los hiciste.'],
+      ['✓', 'Sentirte bien ese día', 'Si tuviste fiebre, una cirugía o tomás medicación, consultalo al llegar.']
+    ];
+    return `${header()}
+      <h2>¿Puedo donar?</h2>
+      <p class="muted">Los requisitos más comunes. El equipo de salud te hace una entrevista breve y un control antes de donar.</p>
+      <section class="card"><ul class="req">${items.map(i => `<li><span class="ic">${i[0]}</span><div><h3>${i[1]}</h3>${i[2] ? `<p class="small muted">${i[2]}</p>` : ''}</div></li>`).join('')}</ul></section>
+      <div class="note small">Esta lista es orientativa. Los criterios los define el banco de sangre: confirmalos en el <a href="${CUDAIO}" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">sitio del CUDAIO</a>.</div>`;
+  }
+
+  function vPerfil() {
+    const pf = state.perfil;
+    return `${header()}
+      <h2>Mis datos</h2>
+      ${state.ejemplo ? '<div class="note plasma small">Ahora se ven los datos de ejemplo de Lucía. Al guardar los tuyos, se reemplazan y se borra el historial de ejemplo.</div>' : ''}
+      <section class="card">
+        <form id="form-perfil">
+          <div class="field"><label for="pf-nombre">Nombre</label><input id="pf-nombre" type="text" maxlength="40" required value="${state.ejemplo ? '' : esc(pf.nombre)}" placeholder="Cómo querés que te saludemos"></div>
+          <div class="field"><label for="pf-grupo">Grupo sanguíneo</label>
+            <select id="pf-grupo"><option value="">No lo sé</option>${GRUPOS.map(g => `<option value="${g}" ${!state.ejemplo && pf.grupo === g ? 'selected' : ''}>${signo(g)}</option>`).join('')}</select>
+            <span class="small muted">Si no lo sabés, te lo informan después de tu primera donación.</span></div>
+          <div class="field"><label>Para calcular cuántas veces por año podés donar</label>
+            <div class="seg">
+              <label><input type="radio" name="pf-sexo" id="pf-sexo-f" value="F" ${state.ejemplo || pf.sexo === 'F' ? 'checked' : ''}> Mujer (3 por año)</label>
+              <label><input type="radio" name="pf-sexo" id="pf-sexo-m" value="M" ${!state.ejemplo && pf.sexo === 'M' ? 'checked' : ''}> Hombre (4 por año)</label>
+            </div></div>
+          <label class="check"><input type="checkbox" id="pf-ok" required> <span>Entiendo que mis datos se guardan solo en este dispositivo y que esta app no reemplaza la indicación del banco de sangre.</span></label>
+          <button class="btn" type="submit">Guardar mis datos</button>
+        </form>
+      </section>
+      <section class="card">
+        <h3>Copia de seguridad</h3>
+        <p class="small muted">Si borrás los datos del navegador o cambiás de celular, tus donaciones se pierden. Guardá este código, por ejemplo mandándotelo por WhatsApp, y pegalo acá para recuperarlas.</p>
+        ${state.ejemplo
+          ? '<p class="small muted">Cuando guardes tus datos vas a poder generar tu código.</p>'
+          : mostrarCodigo
+            ? `<textarea id="bk-out" class="code" rows="3" readonly aria-label="Tu código de copia de seguridad">${aCodigo()}</textarea>
+               <div class="actions"><button class="btn" id="btn-copiar" type="button">Copiar código</button><button class="btn plain" id="btn-ocultar" type="button">Ocultar</button></div>`
+            : '<button class="btn" id="btn-codigo" type="button">Generar mi código</button>'}
+        <div class="field"><label for="bk-in">Recuperar desde un código</label>
+          <textarea id="bk-in" class="code" rows="2" placeholder="Pegá acá tu código VAD1-…"></textarea></div>
+        <button class="btn plain" id="btn-restaurar" type="button">Recuperar mis datos</button>
+        ${msgCopia ? `<p class="small" role="status"><b>${esc(msgCopia)}</b></p>` : ''}
+      </section>
+      ${instalada() ? '' : `<section class="card">
+        <h3>Instalala en tu celular</h3>
+        ${promptInstalacion
+          ? '<button class="btn" id="btn-instalar" type="button">Instalar Volvé a Donar</button>'
+          : '<p class="small muted"><b>Android:</b> menú ⋮ del navegador → <i>Instalar app</i> o <i>Agregar a la pantalla principal</i>.<br><b>iPhone:</b> botón Compartir → <i>Agregar a inicio</i>.</p>'}
+        <p class="small muted">Instalada se abre como cualquier app y funciona sin conexión. En iPhone, además, evita que Safari borre tus datos si pasás una semana sin abrirla.</p>
+      </section>`}
+      <section class="card">
+        <h3>Privacidad</h3>
+        <p class="small muted">Tu grupo sanguíneo y tus donaciones son datos de salud. En este prototipo no se envían a ningún servidor: quedan en el navegador de este dispositivo.</p>
+        ${confirmarBorrado
+          ? `<div class="confirm"><p class="small"><b>¿Borrar todos tus datos?</b> No se puede deshacer.</p><div class="actions"><button class="btn danger" id="btn-borrar-si" type="button">Sí, borrar</button><button class="btn plain" id="btn-borrar-no" type="button">Cancelar</button></div></div>`
+          : '<button class="btn plain" id="btn-borrar" type="button">Borrar mis datos</button>'}
+      </section>`;
+  }
+
+  function render() {
+    const V = { inicio: vInicio, colectas: vColectas, requisitos: vRequisitos, perfil: vPerfil };
+    document.getElementById('app').innerHTML = V[vista]() +
+      `<footer>Prototipo independiente y sin fines de lucro. No es una app oficial del CUDAIO ni del Ministerio de Salud de Santa Fe.</footer>`;
+    document.getElementById('nav').innerHTML = Object.keys(NOMBRES).map(k =>
+      `<button type="button" data-vista="${k}" ${k === vista ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>${NOMBRES[k]}</button>`).join('');
+  }
+
+  function ir(v) { vista = v; agregando = false; confirmarBorrado = false; mostrarCodigo = false; msgCopia = ''; try { history.replaceState(null, '', '#' + v); } catch (e) {} render(); window.scrollTo(0, 0); }
+
+  document.addEventListener('click', e => {
+    const b = e.target.closest('button, [data-vista]');
+    if (!b) return;
+    if (b.dataset.vista) return ir(b.dataset.vista);
+    if (b.dataset.del) { state.donaciones = state.donaciones.filter(d => d.fecha !== b.dataset.del); guardar(); return render(); }
+    switch (b.id) {
+      case 'btn-agregar': agregando = true; render(); document.getElementById('don-fecha').focus(); break;
+      case 'btn-cancelar': agregando = false; render(); break;
+      case 'btn-instalar':
+        if (promptInstalacion) { promptInstalacion.prompt(); promptInstalacion.userChoice.finally(() => { promptInstalacion = null; render(); }); }
+        break;
+      case 'btn-codigo': mostrarCodigo = true; msgCopia = ''; render(); break;
+      case 'btn-ocultar': mostrarCodigo = false; msgCopia = ''; render(); break;
+      case 'btn-copiar': {
+        const valor = document.getElementById('bk-out').value;
+        // Si el navegador no deja copiar, dejamos el código seleccionado para copiarlo a mano
+        const seleccionar = () => { msgCopia = 'Mantené presionado el código para copiarlo.'; render(); const t = document.getElementById('bk-out'); t.focus(); t.select(); };
+        try {
+          navigator.clipboard.writeText(valor).then(() => { msgCopia = 'Código copiado. Guardalo en un lugar seguro.'; render(); }, seleccionar);
+        } catch (err) { seleccionar(); }
+        break;
+      }
+      case 'btn-restaurar': {
+        const nuevo = deCodigo(document.getElementById('bk-in').value);
+        if (!nuevo) { msgCopia = 'Ese código no es válido. Revisá que esté completo y empiece con VAD1-.'; render(); break; }
+        state = nuevo; guardar(); mostrarCodigo = false;
+        msgCopia = `Datos recuperados: ${nuevo.donaciones.length} ${nuevo.donaciones.length === 1 ? 'donación' : 'donaciones'}.`;
+        render(); break;
+      }
+      case 'btn-borrar': confirmarBorrado = true; render(); break;
+      case 'btn-borrar-no': confirmarBorrado = false; render(); break;
+      case 'btn-borrar-si':
+        try { localStorage.removeItem(KEY); } catch (err) {}
+        state = { ejemplo: false, perfil: { nombre: '', grupo: '', sexo: 'F' }, donaciones: [] };
+        confirmarBorrado = false; ir('perfil'); break;
+    }
+  });
+
+  document.addEventListener('submit', e => {
+    e.preventDefault();
+    if (e.target.id === 'form-don') {
+      const fecha = document.getElementById('don-fecha').value;
+      if (!fecha) return;
+      if (!state.donaciones.some(d => d.fecha === fecha))
+        state.donaciones.push({ fecha, lugar: document.getElementById('don-lugar').value.trim() });
+      agregando = false; guardar(); render();
+    }
+    if (e.target.id === 'form-perfil') {
+      const sexo = document.querySelector('input[name="pf-sexo"]:checked');
+      const eraEjemplo = state.ejemplo;
+      state.perfil = {
+        nombre: document.getElementById('pf-nombre').value.trim(),
+        grupo: document.getElementById('pf-grupo').value,
+        sexo: sexo ? sexo.value : 'F'
+      };
+      if (eraEjemplo) state.donaciones = [];
+      state.ejemplo = false;
+      guardar(); ir('inicio');
+    }
+  });
+
+  render();
+
+  // Funcionamiento sin conexión
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+})();
+</script>
+</body>
+</html>

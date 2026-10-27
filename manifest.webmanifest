@@ -1,0 +1,16 @@
+{
+  "name": "Volvé a Donar",
+  "short_name": "Volvé a Donar",
+  "description": "Sabé cuándo podés volver a donar sangre y encontrá colectas en Rosario.",
+  "lang": "es-AR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf7f7",
+  "theme_color": "#a3132f",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
