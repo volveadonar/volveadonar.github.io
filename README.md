@@ -29,6 +29,16 @@ Los datos (nombre, grupo sanguíneo y donaciones) se guardan **solo en el navega
 | `sw.js` | Guarda la app para que funcione sin conexión |
 | `icons/` | Íconos de la app |
 | `herramientas/generar_iconos.py` | Vuelve a generar los íconos PNG |
+| `og-imagen.jpg` | Imagen que muestran WhatsApp y las redes al compartir el link |
+| `herramientas/og-imagen.html` y `servidor_og.py` | Vuelven a generar esa imagen |
+
+## Cambiar la imagen para redes
+
+```bash
+python herramientas/servidor_og.py
+```
+
+Abrí <http://localhost:8766/herramientas/og-imagen.html>: la página dibuja la imagen y la guarda en `og-imagen.jpg`.
 
 ## Probarla en la computadora
 

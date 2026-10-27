@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<title>Generar imagen para redes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+  body { margin: 0; padding: 24px; background: #ddd; font-family: system-ui, sans-serif }
+  canvas { width: 600px; height: 315px; display: block; box-shadow: 0 2px 12px rgba(0,0,0,.2) }
+  p { font-size: 14px }
+</style>
+</head>
+<body>
+<!-- Dibuja la imagen de vista previa (1200x630) que muestran WhatsApp y las redes al compartir el link.
+     Se abre con herramientas/servidor_og.py, que guarda el resultado en og-imagen.jpg. -->
+<canvas id="c" width="1200" height="630"></canvas>
+<p id="estado">Dibujando…</p>
+<script>
+(async () => {
+  await Promise.all([
+    document.fonts.load('800 120px "Bricolage Grotesque"'),
+    document.fonts.load('400 38px "Atkinson Hyperlegible"'),
+    document.fonts.load('700 30px "Atkinson Hyperlegible"')
+  ]);
+  const c = document.getElementById('c');
+  const g = c.getContext('2d');
+  const W = 1200, H = 630, CX = W / 2;
+
+  // Fondo bordó con un brillo suave arriba
+  g.fillStyle = '#a3132f';
+  g.fillRect(0, 0, W, H);
+  const brillo = g.createRadialGradient(CX, 120, 40, CX, 120, 700);
+  brillo.addColorStop(0, 'rgba(255,255,255,0.10)');
+  brillo.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = brillo;
+  g.fillRect(0, 0, W, H);
+
+  // Gota (misma forma que el logo, caja de 24x24)
+  const k = 6.2, ox = CX - 12 * k, oy = 70;
+  const P = (x, y) => [ox + x * k, oy + y * k];
+  g.beginPath();
+  g.moveTo(...P(12, 2.5));
+  g.bezierCurveTo(...P(15.4, 7.2), ...P(18.8, 11), ...P(18.8, 14.8));
+  g.arc(...P(12, 14.8), 6.8 * k, 0, Math.PI);
+  g.bezierCurveTo(...P(5.2, 11), ...P(8.6, 7.2), ...P(12, 2.5));
+  g.closePath();
+  g.fillStyle = '#ffffff';
+  g.fill();
+
+  g.textAlign = 'center';
+  g.textBaseline = 'alphabetic';
+
+  g.fillStyle = '#ffffff';
+  g.font = '800 116px "Bricolage Grotesque"';
+  g.fillText('Volvé a Donar', CX, 340);
+
+  g.fillStyle = 'rgba(255,255,255,0.92)';
+  g.font = '400 38px "Atkinson Hyperlegible"';
+  g.fillText('Sabé cuándo podés volver a donar sangre', CX, 410);
+  g.fillText('y encontrá colectas en Rosario.', CX, 458);
+
+  // Píldora inferior con los datos clave
+  const texto = 'Gratis  ·  Sin cuenta  ·  volveadonar.github.io';
+  g.font = '700 30px "Atkinson Hyperlegible"';
+  const ancho = g.measureText(texto).width + 64, alto = 62, y = 520;
+  g.fillStyle = '#ffffff';
+  g.beginPath();
+  g.roundRect(CX - ancho / 2, y, ancho, alto, alto / 2);
+  g.fill();
+  g.fillStyle = '#a3132f';
+  g.fillText(texto, CX, y + 41);
+
+  const estado = document.getElementById('estado');
+  // JPG en vez de PNG: el degradé pesa mucho en PNG y WhatsApp a veces no muestra imágenes pesadas
+  const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.9));
+  const res = await fetch('/guardar-og', { method: 'POST', body: blob }).catch(() => null);
+  estado.textContent = res && res.ok ? `Guardada: og-imagen.jpg (${blob.size} bytes)` : 'No se pudo guardar (¿está corriendo servidor_og.py?)';
+  window.ogListo = estado.textContent;
+})();
+</script>
+</body>
+</html>
