@@ -221,7 +221,7 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
   let ofrecerRecordatorio = false;
 
   // Estadísticas anónimas con GoatCounter (sin cookies ni datos personales). Vacío = desactivadas.
-  const GOATCOUNTER = '';
+  const GOATCOUNTER = 'volveadonar';
   function medir(evento) {
     if (!GOATCOUNTER) return;
     try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: evento, title: evento, event: true }); } catch (e) {}
@@ -437,7 +437,7 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
         <h3>Contacto</h3>
         <p class="small">Si encontrás un error o tenés una sugerencia, contalo en <a href="${REPO}/issues" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">la página del proyecto en GitHub</a>. El código es abierto, con licencia MIT.</p>
       </section>
-      <p class="small muted">Última actualización: 27 de octubre de 2026.</p>`;
+      <p class="small muted">Última actualización: 28 de octubre de 2026.</p>`;
   }
 
   function vRequisitos() {
