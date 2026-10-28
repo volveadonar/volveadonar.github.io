@@ -128,6 +128,7 @@ input, select, textarea { font: inherit; padding: 10px 12px; border-radius: 10px
 
 .reminder { border-color: var(--accent); background: var(--accent-soft) }
 .reminder .link { justify-self: start }
+.sep { border: 0; border-top: 1px solid var(--line); margin: 4px 0; width: 100% }
 .confirm { display: grid; gap: 10px; padding: 12px; border: 1.5px solid var(--accent); border-radius: 12px }
 
 nav.nav { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); z-index: 5 }
@@ -259,7 +260,22 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
           <button class="btn ghost" id="btn-ics" type="button">iPhone u otro calendario</button>
         </div>
         <button class="link" id="btn-rec-cerrar" type="button">Ahora no</button>
+        <hr class="sep">
+        <p class="small"><b>¿Invitás a alguien a donar con vos?</b> Mandale la app por WhatsApp o por la red que uses.</p>
+        <button class="btn ghost" data-accion="invitar" type="button">Invitar a alguien</button>
       </section>`;
+  }
+
+  // Invitar: usa el menú de compartir del celular y, si no existe, abre WhatsApp
+  const LINK_INVITAR = 'https://volveadonar.github.io/?ref=invitacion';
+  const MSG_INVITAR = 'Estoy usando Volvé a Donar para saber cuándo puedo volver a donar sangre 🩸 Rosario necesita unos 50 donantes por día y cada donación puede ayudar hasta a 3 personas. ¿Te sumás?';
+  async function invitar() {
+    medir('compartir');
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Volvé a Donar', text: MSG_INVITAR, url: LINK_INVITAR }); } catch (e) {}
+      return;
+    }
+    window.open('https://wa.me/?text=' + encodeURIComponent(MSG_INVITAR + ' ' + LINK_INVITAR), '_blank', 'noopener');
   }
 
   // Archivo de calendario (.ics): lo abren el calendario del iPhone, Outlook y casi cualquier otro
@@ -386,6 +402,11 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
             <div class="li-main"><span class="dot"></span><div><b class="num">${largo(d.f)}</b><br><span class="small muted">${esc(d.lugar || 'Sin lugar')}</span></div></div>
             <button class="x" type="button" data-del="${d.fecha}" aria-label="Quitar donación del ${largo(d.f)}">Quitar</button></li>`).join('')}</ul>`
           : '<p class="muted small">Cuando dones, registralo acá y te avisamos cuándo podés volver.</p>'}
+      </section>
+      <section class="card">
+        <h3>Invitá a alguien a donar</h3>
+        <p class="small muted">Si más personas donan seguido, falta menos sangre en los hospitales. Pasale la app a alguien que pueda sumarse.</p>
+        <button class="btn" data-accion="invitar" type="button">Invitar a alguien</button>
       </section>`;
   }
 
@@ -523,6 +544,7 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
     const b = e.target.closest('button, [data-vista]');
     if (!b) return;
     if (b.dataset.vista) return ir(b.dataset.vista);
+    if (b.dataset.accion === 'invitar') return invitar();
     if (b.dataset.del) { state.donaciones = state.donaciones.filter(d => d.fecha !== b.dataset.del); guardar(); return render(); }
     switch (b.id) {
       case 'btn-agregar': agregando = true; render(); document.getElementById('don-fecha').focus(); break;

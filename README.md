@@ -24,7 +24,9 @@ Los datos (nombre, grupo sanguíneo y donaciones) se guardan **solo en el navega
 
 La app puede contar visitas y algunas acciones con [GoatCounter](https://www.goatcounter.com), sin cookies ni datos personales. Se activan poniendo el código del sitio en la constante `GOATCOUNTER` de `index.html` (vacía = desactivadas). El aviso legal de la app se adapta solo.
 
-Acciones que se cuentan: `click-colecta`, `registro-donacion`, `recordatorio-google`, `recordatorio-ics`, `copia-seguridad`, `instalada` y `abrio-instalada`.
+Acciones que se cuentan: `click-colecta`, `registro-donacion`, `recordatorio-google`, `recordatorio-ics`, `copia-seguridad`, `compartir`, `instalada` y `abrio-instalada`.
+
+Los links llevan `?ref=` para saber de dónde llega la gente: `?ref=invitacion` (botón "Invitar a alguien") y `?ref=afiche` (código QR del afiche). GoatCounter los muestra en "Top referrers".
 
 ## Estructura
 

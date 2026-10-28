@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Afiche · Volvé a Donar</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Afiche A4 vertical para imprimir: banda bordó arriba, QR grande al centro, datos clave abajo */
+:root {
+  --rojo: #a3132f;
+  --rojo-suave: #f8e4e8;
+  --tinta: #22171a;
+  --gris: #6e5f63;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box }
+@page { size: A4; margin: 0 }
+html, body { margin: 0; background: #d9d4d5; color: var(--tinta); font-family: var(--body) }
+.barra { display: flex; justify-content: center; gap: 12px; padding: 16px; font-size: 15px }
+.barra button { font: inherit; font-weight: 700; padding: 10px 18px; border-radius: 10px; border: 0; background: var(--rojo); color: #fff; cursor: pointer }
+.hoja { width: 210mm; height: 297mm; margin: 0 auto 24px; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.18); display: grid; grid-template-rows: auto 1fr auto; overflow: hidden }
+
+.banda { background: var(--rojo); color: #fff; padding: 15mm 16mm 12mm; display: grid; justify-items: center; text-align: center; gap: 4mm }
+.banda svg { width: 22mm; height: 22mm }
+.banda h1 { font-family: var(--display); font-weight: 800; font-size: 25mm; line-height: .95; letter-spacing: -0.02em; margin: 0 }
+.banda p { font-size: 7.5mm; margin: 0; max-width: 160mm; line-height: 1.25 }
+
+.centro { display: grid; justify-items: center; align-content: center; gap: 5mm; padding: 8mm 16mm }
+.qr { width: 86mm; height: 86mm; padding: 4mm; border: 1.6mm solid var(--rojo); border-radius: 6mm; background: #fff }
+.qr svg { width: 100%; height: 100%; display: block }
+.escanea { font-family: var(--display); font-weight: 700; font-size: 8.5mm; margin: 0 }
+.url { font-family: var(--display); font-weight: 800; font-size: 9mm; color: var(--rojo); margin: 0 }
+.puntos { display: flex; gap: 5mm; flex-wrap: wrap; justify-content: center; margin-top: 2mm }
+.puntos span { font-weight: 700; font-size: 5mm; padding: 2.2mm 4.5mm; border-radius: 99mm; background: var(--rojo-suave); color: var(--rojo) }
+
+.pie { border-top: 0.6mm solid var(--rojo-suave); padding: 6mm 18mm 10mm; text-align: center; display: grid; gap: 2mm }
+.pie .dato { font-size: 5.6mm; margin: 0; line-height: 1.3 }
+.pie .dato b { color: var(--rojo) }
+.pie .legal { font-size: 3.6mm; color: var(--gris); margin: 0 }
+
+@media print {
+  html, body { background: #fff }
+  .barra { display: none }
+  .hoja { margin: 0; box-shadow: none }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+}
+@media screen and (max-width: 800px) {
+  .hoja { zoom: .45 }
+}
+</style>
+</head>
+<body>
+<div class="barra"><button type="button" onclick="window.print()">Imprimir o guardar como PDF</button></div>
+
+<main class="hoja">
+  <section class="banda">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c3.4 4.7 6.8 8.5 6.8 12.3a6.8 6.8 0 0 1-13.6 0c0-3.8 3.4-7.6 6.8-12.3z" fill="#fff"/></svg>
+    <h1>¿Donás sangre?</h1>
+    <p>Enterate cuándo podés volver a donar y encontrá colectas en Rosario.</p>
+  </section>
+
+  <section class="centro">
+    <div class="qr" id="qr"></div>
+    <p class="escanea">Escaneá con la cámara de tu celular</p>
+    <p class="url">volveadonar.github.io</p>
+    <div class="puntos"><span>Gratis</span><span>Sin crear cuenta</span><span>Tus datos quedan en tu celular</span></div>
+  </section>
+
+  <footer class="pie">
+    <p class="dato">Rosario necesita unos <b>50 donantes por día</b>.<br>Cada donación puede ayudar hasta a <b>3 personas</b>.</p>
+    <p class="legal">Volvé a Donar es un proyecto independiente y sin fines de lucro. No es una app oficial del CUDAIO ni del Ministerio de Salud de Santa Fe.</p>
+  </footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+// El QR lleva a la app con ?ref=afiche, para contar en las estadísticas cuánta gente llega desde el afiche
+(() => {
+  const qr = qrcode(0, 'M');
+  qr.addData('https://volveadonar.github.io/?ref=afiche');
+  qr.make();
+  const n = qr.getModuleCount();
+  let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) d += `M${c} ${r}h1v1h-1z`;
+  document.getElementById('qr').innerHTML =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges" role="img" aria-label="Código QR que lleva a volveadonar.github.io"><path fill="#22171a" d="${d}"/></svg>`;
+})();
+</script>
+</body>
+</html>
