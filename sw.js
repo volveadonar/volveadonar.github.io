@@ -1,6 +1,6 @@
 // Service worker de Volvé a Donar: guarda la app para que abra sin conexión.
 // Al publicar cambios, subí la versión para que los teléfonos descarguen la nueva.
-const VERSION = 'vad-v3';
+const VERSION = 'vad-v4';
 const ARCHIVOS = [
   './',
   './index.html',

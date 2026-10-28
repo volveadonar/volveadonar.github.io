@@ -9,7 +9,7 @@ Rosario necesita unos 50 donantes por día. El objetivo es que más personas se 
 ## Qué hace
 
 - Calcula la próxima fecha posible para donar: 2 meses entre donaciones, hasta 3 por año (mujeres) o 4 (hombres).
-- Agenda un recordatorio en Google Calendar.
+- Después de registrar una donación, ofrece agendar un recordatorio en Google Calendar o en cualquier otro calendario (iPhone, Outlook) con un archivo `.ics`.
 - Muestra a qué grupos sanguíneos les sirve tu sangre.
 - Guarda el historial de donaciones.
 - Muestra los requisitos básicos para donar.
@@ -19,6 +19,12 @@ Rosario necesita unos 50 donantes por día. El objetivo es que más personas se 
 ## Privacidad
 
 Los datos (nombre, grupo sanguíneo y donaciones) se guardan **solo en el navegador del usuario**. No hay servidor ni base de datos: nada se envía a ningún lado.
+
+### Estadísticas anónimas
+
+La app puede contar visitas y algunas acciones con [GoatCounter](https://www.goatcounter.com), sin cookies ni datos personales. Se activan poniendo el código del sitio en la constante `GOATCOUNTER` de `index.html` (vacía = desactivadas). El aviso legal de la app se adapta solo.
+
+Acciones que se cuentan: `click-colecta`, `registro-donacion`, `recordatorio-google`, `recordatorio-ics`, `copia-seguridad`, `instalada` y `abrio-instalada`.
 
 ## Estructura
 

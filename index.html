@@ -126,6 +126,8 @@ input, select, textarea { font: inherit; padding: 10px 12px; border-radius: 10px
 .req li:first-child { border-top: 0 }
 .req .ic { font-family: var(--display); font-weight: 800; color: var(--accent); font-size: 1.05rem; text-align: center; line-height: 1.2 }
 
+.reminder { border-color: var(--accent); background: var(--accent-soft) }
+.reminder .link { justify-self: start }
 .confirm { display: grid; gap: 10px; padding: 12px; border: 1.5px solid var(--accent); border-radius: 12px }
 
 nav.nav { position: fixed; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: max(0px, env(safe-area-inset-left, 0px)); padding-right: max(0px, env(safe-area-inset-right, 0px)); z-index: 5 }
@@ -216,12 +218,20 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
   let agregando = false;
   let mostrarCodigo = false;
   let msgCopia = '';
+  let ofrecerRecordatorio = false;
+
+  // Estadísticas anónimas con GoatCounter (sin cookies ni datos personales). Vacío = desactivadas.
+  const GOATCOUNTER = '';
+  function medir(evento) {
+    if (!GOATCOUNTER) return;
+    try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: evento, title: evento, event: true }); } catch (e) {}
+  }
 
   // Instalación: Android/Chrome ofrece su propio aviso; lo guardamos para mostrarlo desde un botón
   let promptInstalacion = null;
   const instalada = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalacion = e; if (vista === 'perfil') render(); });
-  window.addEventListener('appinstalled', () => { promptInstalacion = null; if (vista === 'perfil') render(); });
+  window.addEventListener('appinstalled', () => { promptInstalacion = null; medir('instalada'); if (vista === 'perfil') render(); });
 
   const limiteAnual = () => state.perfil.sexo === 'M' ? 4 : 3;
   const ordenadas = () => state.donaciones.map(d => ({...d, f: parse(d.fecha)})).sort((a, b) => b.f - a.f);
@@ -239,6 +249,43 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
     return { fecha: f, desde: ds[0].f, motivo };
   }
   const enUltimoAnio = () => ordenadas().filter(d => d.f > addMonths(hoy(), -12)).length;
+
+  function tarjetaRecordatorio(fecha) {
+    return `<section class="card reminder" id="recordatorio">
+        <h3>¿Te avisamos el ${largo(fecha)}?</h3>
+        <p class="small">Agendá un recordatorio en tu calendario. Ese día te va a avisar, sin necesidad de abrir la app.</p>
+        <div class="actions">
+          <a class="btn" href="${gcalLink(fecha)}" target="_blank" rel="noopener" data-medir="recordatorio-google">Google Calendar</a>
+          <button class="btn ghost" id="btn-ics" type="button">iPhone u otro calendario</button>
+        </div>
+        <button class="link" id="btn-rec-cerrar" type="button">Ahora no</button>
+      </section>`;
+  }
+
+  // Archivo de calendario (.ics): lo abren el calendario del iPhone, Outlook y casi cualquier otro
+  function descargarIcs(fecha) {
+    const d = iso(fecha).replace(/-/g, ''), fin = iso(addDays(fecha, 1)).replace(/-/g, '');
+    const sello = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+    const ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Volve a Donar//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `UID:${d}-${Date.now()}@volveadonar.github.io`,
+      `DTSTAMP:${sello}`,
+      `DTSTART;VALUE=DATE:${d}`,
+      `DTEND;VALUE=DATE:${fin}`,
+      'SUMMARY:Ya puedo volver a donar sangre',
+      `DESCRIPTION:Buscá una colecta e inscribite en ${CUDAIO}`,
+      `URL:${CUDAIO}`,
+      // Aviso a las 9 de la mañana de ese día
+      'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Ya podés volver a donar sangre', 'TRIGGER:PT9H', 'END:VALARM',
+      'END:VEVENT', 'END:VCALENDAR'
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'volve-a-donar.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  }
 
   function gcalLink(d) {
     const a = iso(d).replace(/-/g, ''), b = iso(addDays(d, 1)).replace(/-/g, '');
@@ -312,9 +359,12 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
         </div>
       </section>
       <div class="actions">
-        <a class="btn" href="${CUDAIO}" target="_blank" rel="noopener">Buscar una colecta</a>
-        <a class="btn ghost" href="${gcalLink(p.fecha)}" target="_blank" rel="noopener">Agendar recordatorio</a>
+        <a class="btn" href="${CUDAIO}" target="_blank" rel="noopener" data-medir="click-colecta">Buscar una colecta</a>
+        ${listo
+          ? '<button class="btn ghost" id="btn-agregar-top" type="button">Registrar donación</button>'
+          : '<button class="btn ghost" id="btn-recordatorio" type="button">Agendar recordatorio</button>'}
       </div>
+      ${ofrecerRecordatorio && !listo ? tarjetaRecordatorio(p.fecha) : ''}
       <div class="stats">
         <div class="stat"><b class="num">${total}</b><span>donaciones registradas</span></div>
         <div class="stat"><b class="num">${anio}<span style="font-size:1rem;color:var(--muted)">/${lim}</span></b><span>en los últimos 12 meses</span></div>
@@ -344,7 +394,7 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
       <h2>Colectas</h2>
       <section class="card">
         <p>Las colectas de sangre de Rosario y la región las organiza el <b>CUDAIO</b>, el organismo de donación de la provincia de Santa Fe. En su sitio ves las fechas y los lugares, y te inscribís antes de ir.</p>
-        <a class="btn" href="${CUDAIO}" target="_blank" rel="noopener">Ver colectas e inscribirme</a>
+        <a class="btn" href="${CUDAIO}" target="_blank" rel="noopener" data-medir="click-colecta">Ver colectas e inscribirme</a>
         <p class="small muted">También podés donar en los puestos fijos de los hospitales provinciales. Consultá días y horarios en el mismo sitio.</p>
       </section>
       <section class="card">
@@ -373,7 +423,9 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
       </section>
       <section class="card">
         <h3>Tus datos</h3>
-        <p class="small">Tu nombre, tu grupo sanguíneo y tus donaciones se guardan <b>solo en este dispositivo</b>. No hay servidor ni base de datos: nadie más los ve, tampoco quien hizo la app. No usamos cookies, publicidad ni herramientas de seguimiento.</p>
+        <p class="small">Tu nombre, tu grupo sanguíneo y tus donaciones se guardan <b>solo en este dispositivo</b>. No hay servidor ni base de datos: nadie más los ve, tampoco quien hizo la app. ${GOATCOUNTER
+          ? 'No usamos cookies ni publicidad.</p><p class="small">Para saber cuánta gente usa la app, contamos visitas y algunas acciones (por ejemplo, cuántas personas tocan <i>Buscar una colecta</i>) con GoatCounter, un servicio de estadísticas anónimas. No usa cookies, no sabe quién sos y nunca recibe tu nombre, tu grupo sanguíneo ni tus donaciones.'
+          : 'No usamos cookies, publicidad ni herramientas de seguimiento.'}</p>
         <p class="small muted">Para mostrar las tipografías, la app las descarga de Google Fonts. Como pasa con cualquier sitio web, Google recibe la dirección IP de tu conexión, pero no tus datos de la app.</p>
         <p class="small muted">Podés borrar todo cuando quieras desde <b>Mis datos</b>.</p>
       </section>
@@ -463,9 +515,11 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
       `<button type="button" data-vista="${k}" ${k === vista ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${ICON[k]}</svg>${NOMBRES[k]}</button>`).join('');
   }
 
-  function ir(v) { vista = v; agregando = false; confirmarBorrado = false; mostrarCodigo = false; msgCopia = ''; try { history.replaceState(null, '', '#' + v); } catch (e) {} render(); window.scrollTo(0, 0); }
+  function ir(v) { vista = v; agregando = false; confirmarBorrado = false; mostrarCodigo = false; msgCopia = ''; ofrecerRecordatorio = false; try { history.replaceState(null, '', '#' + v); } catch (e) {} render(); window.scrollTo(0, 0); }
 
   document.addEventListener('click', e => {
+    const m = e.target.closest('[data-medir]');
+    if (m) medir(m.dataset.medir);
     const b = e.target.closest('button, [data-vista]');
     if (!b) return;
     if (b.dataset.vista) return ir(b.dataset.vista);
@@ -476,7 +530,18 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
       case 'btn-instalar':
         if (promptInstalacion) { promptInstalacion.prompt(); promptInstalacion.userChoice.finally(() => { promptInstalacion = null; render(); }); }
         break;
-      case 'btn-codigo': mostrarCodigo = true; msgCopia = ''; render(); break;
+      case 'btn-recordatorio':
+        ofrecerRecordatorio = true; render();
+        document.getElementById('recordatorio').scrollIntoView({ block: 'center' });
+        break;
+      case 'btn-rec-cerrar': ofrecerRecordatorio = false; render(); break;
+      case 'btn-ics': descargarIcs(proxima().fecha); medir('recordatorio-ics'); break;
+      case 'btn-agregar-top':
+        agregando = true; render();
+        document.getElementById('don-fecha').scrollIntoView({ block: 'center' });
+        document.getElementById('don-fecha').focus({ preventScroll: true });
+        break;
+      case 'btn-codigo': mostrarCodigo = true; msgCopia = ''; medir('copia-seguridad'); render(); break;
       case 'btn-ocultar': mostrarCodigo = false; msgCopia = ''; render(); break;
       case 'btn-copiar': {
         const valor = document.getElementById('bk-out').value;
@@ -510,7 +575,11 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
       if (!fecha) return;
       if (!state.donaciones.some(d => d.fecha === fecha))
         state.donaciones.push({ fecha, lugar: document.getElementById('don-lugar').value.trim() });
-      agregando = false; guardar(); render();
+      agregando = false; guardar(); medir('registro-donacion');
+      // Justo después de donar es cuando más sirve agendar el aviso
+      ofrecerRecordatorio = proxima().fecha > hoy();
+      render();
+      if (ofrecerRecordatorio) document.getElementById('recordatorio').scrollIntoView({ block: 'center' });
     }
     if (e.target.id === 'form-perfil') {
       const sexo = document.querySelector('input[name="pf-sexo"]:checked');
@@ -527,6 +596,15 @@ footer { font-size: .78rem; color: var(--muted); text-align: center; padding-top
   });
 
   render();
+
+  if (GOATCOUNTER) {
+    const s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://gc.zgo.at/count.js';
+    s.dataset.goatcounter = `https://${GOATCOUNTER}.goatcounter.com/count`;
+    s.onload = () => { if (instalada()) medir('abrio-instalada'); };
+    document.head.appendChild(s);
+  }
 
   // Funcionamiento sin conexión
   if ('serviceWorker' in navigator) {
